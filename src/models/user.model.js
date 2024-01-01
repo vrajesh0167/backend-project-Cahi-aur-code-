@@ -35,12 +35,11 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
         },
         avatar: {
-            type: String, // cloudinary Url
+            type: String,     // cloudinary Url
             require: true,
         },
         coverImage: {
-            // cloudinary Url
-            type: String,
+            type: String,   // cloudinary Url
         },
         refreshToken: {
             type: String,
