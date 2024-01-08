@@ -1,8 +1,10 @@
+import { REFRESH_TOKEN_SECRET } from "../config/index.js";
 import { User } from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshTokens = async (userid) => {
     try {
@@ -121,7 +123,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // }
 
     const user = await User.findOne({
-        $or: [{username}, {email }] 
+        $or: [{ username }, { email }],
     });
     if (!user) {
         throw new ApiError(404, "User Not Found");
@@ -178,4 +180,45 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "User logged out"));
 });
 
-export { registerUser, loginUser, logoutUser };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const inCommingAccessToken =
+        req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!inCommingAccessToken) {
+        throw new ApiError(401, "Unauthorized Token");
+    }
+
+    const decodedToken = jwt.verify(inCommingAccessToken, REFRESH_TOKEN_SECRET);
+
+    const user = await User.findById(decodedToken._id);
+    if (!user) {
+        throw new ApiError(401, "Invalid token");
+    }
+
+    if (inCommingAccessToken !== user.refreshToken) {
+        throw new ApiError(401, "Refresh Token is expired or used");
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+        user._id
+    );
+
+    const option = {
+        httpOnly: true,
+        secure: true,
+    };
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, option)
+        .cookie("refreshToken", refreshToken, option)
+        .json(
+            new ApiResponse(
+                200,
+                { accessToken, refreshToken },
+                "Access Token refreshed"
+            )
+        );
+});
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken };
