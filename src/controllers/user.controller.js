@@ -112,7 +112,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // res cookie
 
     const { username, email, password } = req.body;
-    console.log(email);
+    console.log("login email:- ", email);
 
     if (!username && !email) {
         throw new ApiError(400, "Username or Email field is required");
@@ -165,7 +165,7 @@ const loginUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
-        { $set: { refreshToken: undefined } },
+        { $unset: { refreshToken: 1 } },
         { new: true }
     );
 
@@ -271,7 +271,7 @@ const UpdateUserDocuments = asyncHandler(async (req, res) => {
             "something went wrong while updating the user."
         );
     }
-    return res.status(200).json(200, user, "User Updated Successfully");
+    return res.status(200).json(new ApiResponse(200, user, "User Updated Successfully"));
 });
 
 const changeAvatar = asyncHandler(async (req, res) => {
@@ -288,7 +288,7 @@ const changeAvatar = asyncHandler(async (req, res) => {
         { new: true }
     ).select("-password");
 
-    return res.status(200).json(200, user, "Avatar updated Successfully");
+    return res.status(200).json(new ApiResponse(200, user, "Avatar updated Successfully"));
 });
 const changeCoverImage = asyncHandler(async (req, res) => {
     const coverImageLocalPath = req.file?.path;
@@ -304,7 +304,7 @@ const changeCoverImage = asyncHandler(async (req, res) => {
         { new: true }
     ).select("-password");
 
-    return res.status(200).json(200, user, "coverImage updated Successfully");
+    return res.status(200).json(new ApiResponse(200, user, "coverImage updated Successfully"));
 });
 
 const getUserChannelProfile = async (req, res, next) => {
@@ -373,7 +373,7 @@ const getUserChannelProfile = async (req, res, next) => {
 
     return res
         .status(200)
-        .json(200, channel[0], "Channel Fetched Successfully");
+        .json(new ApiResponse(200, channel[0], "Channel Fetched Successfully"));
 };
 
 const getwatchHistory = asyncHandler(async (req, res, next) => {

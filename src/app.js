@@ -19,7 +19,7 @@ app.use(express.static("public"));
 
 
 // routes import 
-import userrouter from './roters/user.router.js'
+import userrouter from './routers/user.router.js'
 
 //routes declaration
 app.use('/api/v1/users', userrouter);
